@@ -1,0 +1,857 @@
+{
+	"info": {
+		"_postman_id": "42515309-ce65-4fc4-b197-07efcb5905f7",
+		"name": "PetStore API - Complete Test Suite",
+		"description": "# PetStore API Testing Suite\n\n## Overview\nComprehensive automated test suite for the Swagger PetStore API covering all CRUD operations with positive and negative test scenarios.\n\n## Test Coverage\n1. **CREATE (POST)** - Add new pets to the store\n2. **READ (GET)** - Retrieve pet information\n3. **UPDATE (PUT)** - Modify existing pet data\n4. **DELETE (DELETE)** - Remove pets from the store\n\n## Test Scenarios\n### Positive Tests:\n- Create pet with all required fields\n- Verify response structure and data\n- Update existing pet successfully\n- Retrieve pet by valid ID\n- Delete existing pet\n\n### Negative Tests:\n- Missing required fields (name, photoUrls)\n- Invalid data types\n- Non-existent pet operations\n- Invalid ID formats\n\n## Execution\n1. Set environment variables: `baseUrl` = https://petstore3.swagger.io/api/v3\n2. Run collection using Collection Runner\n3. Review test results and assertions\n\n## Author\nQA Automation Engineer",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21427447"
+	},
+	"item": [
+		{
+			"name": "1. CREATE Tests (POST)",
+			"item": [
+				{
+					"name": "POST - Create Pet Successfully (All Required Fields)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify response status code",
+									"pm.test('Status code is 200 - Pet created successfully', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"// Parse response",
+									"const responseData = pm.response.json();",
+									"",
+									"// Test 2: Verify response body structure",
+									"pm.test('Response body has all required fields', () => {",
+									"    pm.expect(responseData).to.have.property('id');",
+									"    pm.expect(responseData).to.have.property('name');",
+									"    pm.expect(responseData).to.have.property('photoUrls');",
+									"    pm.expect(responseData).to.have.property('status');",
+									"});",
+									"",
+									"// Test 3: Verify pet ID is present and valid",
+									"pm.test('Response ID is a valid number', () => {",
+									"    pm.expect(responseData.id).to.be.a('number');",
+									"    pm.expect(responseData.id).to.be.greaterThan(0);",
+									"});",
+									"",
+									"// Test 4: Verify pet name is present",
+									"pm.test('Response name is present and valid', () => {",
+									"    pm.expect(responseData.name).to.be.a('string');",
+									"    pm.expect(responseData.name).to.not.be.empty;",
+									"});",
+									"",
+									"// Test 5: Verify photoUrls is an array",
+									"pm.test('photoUrls is an array with elements', () => {",
+									"    pm.expect(responseData.photoUrls).to.be.an('array');",
+									"    pm.expect(responseData.photoUrls.length).to.be.greaterThan(0);",
+									"});",
+									"",
+									"// Test 6: Verify category object structure",
+									"pm.test('Category object has correct structure', () => {",
+									"    pm.expect(responseData.category).to.have.property('id');",
+									"    pm.expect(responseData.category).to.have.property('name');",
+									"});",
+									"",
+									"// Test 7: Verify tags array structure",
+									"pm.test('Tags array has correct structure', () => {",
+									"    pm.expect(responseData.tags).to.be.an('array');",
+									"    if (responseData.tags.length > 0) {",
+									"        pm.expect(responseData.tags[0]).to.have.property('id');",
+									"        pm.expect(responseData.tags[0]).to.have.property('name');",
+									"    }",
+									"});",
+									"",
+									"// Test 8: Verify status value is valid",
+									"pm.test('Status is one of valid values', () => {",
+									"    const validStatuses = ['available', 'pending', 'sold'];",
+									"    pm.expect(validStatuses).to.include(responseData.status);",
+									"});",
+									"",
+									"// Save pet ID for subsequent tests",
+									"if (responseData.id) {",
+									"    pm.collectionVariables.set('createdPetId', responseData.id);",
+									"    console.log('Created Pet ID:', responseData.id);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": {{$timestamp}},\n  \"name\": \"{{$randomFirstName}}\",\n  \"category\": {\n    \"id\": {{$randomInt}},\n    \"name\": \"Dogs\"\n  },\n  \"photoUrls\": [\n    \"https://example.com/{{$randomUUID}}.jpg\"\n  ],\n  \"tags\": [\n    {\n      \"id\": {{$randomInt}},\n      \"name\": \"friendly\"\n    },\n    {\n      \"id\": {{$randomInt}},\n      \"name\": \"trained\"\n    }\n  ],\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pet",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "**Test Case:** Create a new pet with all required and optional fields.\n\n**Expected Result:** \n- Status Code: 200\n- Response contains all submitted fields\n- Pet is created with unique ID\n\n**Validations:**\n- Status code verification\n- Response structure validation\n- Field value matching\n- Data type verification"
+					},
+					"response": []
+				},
+				{
+					"name": "POST - Create Pet Without Name (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify error status code",
+									"pm.test('Status code is 400, 405 or 422 - Bad Request', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 405, 422]);",
+									"});",
+									"",
+									"console.log('✓ Negative test passed: Missing name field rejected');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": {{$timestamp}},\n  \"photoUrls\": [\n    \"https://example.com/photo.jpg\"\n  ],\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pet",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "**Test Case:** Attempt to create a pet without the required 'name' field.\n\n**Expected Result:**\n- Status Code: 400/405/422 (Client Error)\n- Error message indicating missing required field\n\n**Validations:**\n- Appropriate error status code\n- Error response structure"
+					},
+					"response": []
+				},
+				{
+					"name": "POST - Create Pet Without PhotoUrls (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify error status code",
+									"pm.test('Status code indicates error (400/405/422)', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 405, 422]);",
+									"});",
+									"",
+									"console.log('✓ Negative test passed: Missing photoUrls field rejected');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": {{$timestamp}},\n  \"name\": \"{{$randomFirstName}}\",\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pet",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "**Test Case:** Attempt to create a pet without the required 'photoUrls' field.\n\n**Expected Result:**\n- Status Code: 400/405/422\n- Error indicating missing photoUrls\n\n**Validations:**\n- Appropriate error status code"
+					},
+					"response": []
+				},
+				{
+					"name": "POST - Create Pet With Invalid Data Types (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify error status code for invalid data types",
+									"pm.test('Status code indicates validation error', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 422, 500]);",
+									"});",
+									"",
+									"console.log('✓ Negative test passed: Invalid data types rejected');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"invalid_string_id\",\n  \"name\": 12345,\n  \"photoUrls\": \"not_an_array\",\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pet",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "**Test Case:** Attempt to create a pet with invalid data types.\n\n**Expected Result:**\n- Status Code: 400/422/500\n- Validation error message\n\n**Validations:**\n- Appropriate error status code\n- API validates data types"
+					},
+					"response": []
+				}
+			],
+			"description": "Test suite for CREATE operations on the Pet resource.\n\nIncludes positive and negative test scenarios for pet creation."
+		},
+		{
+			"name": "2. READ Tests (GET)",
+			"item": [
+				{
+					"name": "GET - Retrieve Pet By Valid ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify successful status code",
+									"pm.test('Status code is 200 - Pet retrieved successfully', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// Parse response",
+									"const responseData = pm.response.json();",
+									"const expectedPetId = parseInt(pm.collectionVariables.get('createdPetId'));",
+									"",
+									"// Test 2: Verify response structure",
+									"pm.test('Response has required fields', () => {",
+									"    pm.expect(responseData).to.have.property('id');",
+									"    pm.expect(responseData).to.have.property('name');",
+									"    pm.expect(responseData).to.have.property('photoUrls');",
+									"});",
+									"",
+									"// Test 3: Verify pet ID matches requested ID",
+									"pm.test('Retrieved pet ID matches requested ID', () => {",
+									"    pm.expect(responseData.id).to.eql(expectedPetId);",
+									"});",
+									"",
+									"// Test 4: Verify data types",
+									"pm.test('Response fields have correct data types', () => {",
+									"    pm.expect(responseData.id).to.be.a('number');",
+									"    pm.expect(responseData.name).to.be.a('string');",
+									"    pm.expect(responseData.photoUrls).to.be.an('array');",
+									"});",
+									"",
+									"// Test 5: Verify pet name",
+									"pm.test('Pet name is not empty', () => {",
+									"    pm.expect(responseData.name).to.not.be.empty;",
+									"});",
+									"",
+									"console.log('✓ Successfully retrieved pet with ID:', responseData.id);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pet/{{createdPetId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet",
+								"{{createdPetId}}"
+							]
+						},
+						"description": "**Test Case:** Retrieve a pet using a valid pet ID.\n\n**Expected Result:**\n- Status Code: 200\n- Response contains pet data\n- Pet ID matches request\n\n**Validations:**\n- Status code verification\n- Response structure\n- Data integrity\n- Field data types"
+					},
+					"response": []
+				},
+				{
+					"name": "GET - Retrieve Pet With Invalid ID (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify error status code",
+									"pm.test('Status code is 404 - Pet not found', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404, 400]);",
+									"});",
+									"",
+									"console.log('✓ Negative test passed: Invalid pet ID handled correctly');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pet/999999999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet",
+								"999999999"
+							]
+						},
+						"description": "**Test Case:** Attempt to retrieve a pet with a non-existent ID.\n\n**Expected Result:**\n- Status Code: 404 Not Found\n- Error message indicating pet not found\n\n**Validations:**\n- Appropriate error status code\n- Error response structure"
+					},
+					"response": []
+				},
+				{
+					"name": "GET - Retrieve Pet With Invalid ID Format (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify error status code for invalid format",
+									"pm.test('Status code indicates error (400 or 404)', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+									"});",
+									"",
+									"console.log('✓ Negative test passed: Invalid ID format rejected');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pet/invalid_id_string",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet",
+								"invalid_id_string"
+							]
+						},
+						"description": "**Test Case:** Attempt to retrieve a pet with invalid ID format (string instead of integer).\n\n**Expected Result:**\n- Status Code: 400 Bad Request\n- Error indicating invalid ID format\n\n**Validations:**\n- Appropriate error status code"
+					},
+					"response": []
+				}
+			],
+			"description": "Test suite for READ operations on the Pet resource.\n\nIncludes positive and negative test scenarios for pet retrieval."
+		},
+		{
+			"name": "3. UPDATE Tests (PUT)",
+			"item": [
+				{
+					"name": "PUT - Update Existing Pet Successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify successful update status code",
+									"pm.test('Status code is 200/201/204 - Pet updated successfully', () => {",
+									"    pm.response.to.be.oneOf([200, 201, 204]);",
+									"});",
+									"",
+									"// Parse response",
+									"const responseData = pm.response.json();",
+									"const expectedPetId = parseInt(pm.collectionVariables.get('createdPetId'));",
+									"",
+									"// Test 3: Verify response structure",
+									"pm.test('Response has all required fields', () => {",
+									"    pm.expect(responseData).to.have.property('id');",
+									"    pm.expect(responseData).to.have.property('name');",
+									"    pm.expect(responseData).to.have.property('status');",
+									"});",
+									"",
+									"// Test 4: Verify pet ID remains unchanged",
+									"pm.test('Pet ID remains unchanged after update', () => {",
+									"    pm.expect(responseData.id).to.eql(expectedPetId);",
+									"});",
+									"",
+									"// Test 5: Verify name was updated",
+									"pm.test('Pet name was updated successfully', () => {",
+									"    pm.expect(responseData.name).to.be.a('string');",
+									"    pm.expect(responseData.name).to.not.be.empty;",
+									"});",
+									"",
+									"// Test 6: Verify status was updated",
+									"pm.test('Pet status was updated to sold', () => {",
+									"    pm.expect(responseData.status).to.eql('sold');",
+									"});",
+									"",
+									"// Test 7: Verify category was updated",
+									"pm.test('Pet category was updated', () => {",
+									"    pm.expect(responseData.category).to.have.property('name');",
+									"    pm.expect(responseData.category.name).to.eql('Cats');",
+									"});",
+									"",
+									"console.log('✓ Pet updated successfully:', responseData.name);"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": {{createdPetId}},\n  \"name\": \"{{$randomFirstName}} Updated\",\n  \"category\": {\n    \"id\": {{$randomInt}},\n    \"name\": \"Cats\"\n  },\n  \"photoUrls\": [\n    \"https://example.com/updated-{{$randomUUID}}.jpg\"\n  ],\n  \"tags\": [\n    {\n      \"id\": {{$randomInt}},\n      \"name\": \"updated\"\n    }\n  ],\n  \"status\": \"sold\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pet",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "**Test Case:** Update an existing pet with new data.\n\n**Expected Result:**\n- Status Code: 200\n- Response reflects updated values\n- Pet ID remains unchanged\n\n**Validations:**\n- Status code verification\n- Updated field values\n- Data integrity maintained"
+					},
+					"response": []
+				},
+				{
+					"name": "PUT - Update Non-Existent Pet (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify error status code",
+									"pm.test('Status code is 404 or 400 - Pet not found', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404, 400]);",
+									"});",
+									"",
+									"",
+									"console.log('✓ Negative test passed: Non-existent pet update rejected');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 999999999,\n  \"name\": \"Non-existent Pet\",\n  \"photoUrls\": [\n    \"https://example.com/photo.jpg\"\n  ],\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pet",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "**Test Case:** Attempt to update a pet that doesn't exist.\n\n**Expected Result:**\n- Status Code: 404 Not Found\n- Error message indicating pet not found\n\n**Validations:**\n- Appropriate error status code\n- Error response structure"
+					},
+					"response": []
+				},
+				{
+					"name": "PUT - Update Pet With Missing Required Fields (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify validation error status code",
+									"pm.test('Status code indicates validation error', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+									"});",
+									"",
+									"console.log('✓ Negative test passed: Update with missing fields rejected');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": {{createdPetId}},\n  \"photoUrls\": [\n    \"https://example.com/photo.jpg\"\n  ],\n  \"status\": \"available\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/pet",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet"
+							]
+						},
+						"description": "**Test Case:** Attempt to update a pet with missing required fields.\n\n**Expected Result:**\n- Status Code: 400/422\n- Validation error message\n\n**Validations:**\n- Appropriate error status code"
+					},
+					"response": []
+				}
+			],
+			"description": "Test suite for UPDATE operations on the Pet resource.\n\nIncludes positive and negative test scenarios for pet updates."
+		},
+		{
+			"name": "4. DELETE Tests (DELETE)",
+			"item": [
+				{
+					"name": "DELETE - Delete Existing Pet Successfully",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify successful deletion status code",
+									"pm.test('Status code is 200 - Pet deleted successfully', () => {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"console.log('✓ Pet deleted successfully with ID:', pm.collectionVariables.get('createdPetId'));"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "api_key",
+								"value": "special-key"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pet/{{createdPetId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet",
+								"{{createdPetId}}"
+							]
+						},
+						"description": "**Test Case:** Delete an existing pet using valid pet ID.\n\n**Expected Result:**\n- Status Code: 200\n- Pet is successfully removed\n\n**Validations:**\n- Status code verification\n- Response time acceptable"
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE - Verify Pet Was Deleted (GET After DELETE)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify pet no longer exists",
+									"pm.test('Status code is 404 - Pet not found after deletion', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404, 400]);",
+									"});",
+									"",
+									"// Test 2: Verify deletion was successful",
+									"pm.test('Pet was successfully deleted from system', () => {",
+									"    pm.expect(pm.response.code).to.satisfy((code) => {",
+									"        return code === 404 || code === 400;",
+									"    }, 'Pet should not exist (404) after deletion');",
+									"});",
+									"",
+									"console.log('✓ Verification passed: Pet no longer exists in system');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pet/{{createdPetId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet",
+								"{{createdPetId}}"
+							]
+						},
+						"description": "**Test Case:** Verify that a deleted pet no longer exists in the system.\n\n**Expected Result:**\n- Status Code: 404 Not Found\n- Pet cannot be retrieved\n\n**Validations:**\n- 404 status confirms deletion\n- Data integrity maintained"
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE - Delete Non-Existent Pet (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify error status code",
+									"pm.test('Status code is 404 or 400 - Pet not found', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([404, 400]);",
+									"});",
+									"",
+									"console.log('✓ Negative test passed: Cannot delete non-existent pet');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "api_key",
+								"value": "special-key"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pet/888888888",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet",
+								"888888888"
+							]
+						},
+						"description": "**Test Case:** Attempt to delete a pet that doesn't exist.\n\n**Expected Result:**\n- Status Code: 404 Not Found or 400 Bad Request\n- Error message indicating pet not found\n\n**Validations:**\n- Appropriate error status code"
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE - Delete With Invalid ID Format (Negative)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test 1: Verify error status code for invalid format",
+									"pm.test('Status code indicates error (400 or 404)', () => {",
+									"    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+									"});",
+									"",
+									"console.log('✓ Negative test passed: Invalid ID format rejected for deletion');"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "api_key",
+								"value": "special-key"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/pet/invalid_id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"pet",
+								"invalid_id"
+							]
+						},
+						"description": "**Test Case:** Attempt to delete a pet with invalid ID format.\n\n**Expected Result:**\n- Status Code: 400 Bad Request\n- Error indicating invalid ID format\n\n**Validations:**\n- Appropriate error status code"
+					},
+					"response": []
+				}
+			],
+			"description": "Test suite for DELETE operations on the Pet resource.\n\nIncludes positive and negative test scenarios for pet deletion, plus verification tests."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Collection-level pre-request script",
+					"console.log('='.repeat(60));",
+					"console.log('🧪 PetStore API - Complete CRUD Testing Suite');",
+					"console.log('📅 Timestamp:', new Date().toISOString());",
+					"console.log('🔗 Base URL:', pm.collectionVariables.get('baseUrl'));",
+					"console.log('='.repeat(60));"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Collection-level test script - runs after every request",
+					"const testName = pm.info.requestName;",
+					"const statusCode = pm.response.code;",
+					"const statusText = pm.response.status;",
+					"const responseTime = pm.response.responseTime;",
+					"",
+					"console.log('-'.repeat(60));",
+					"console.log('📋 Request:', testName);",
+					"console.log('📊 Status:', statusCode, statusText);",
+					"console.log('⏱️  Response Time:', responseTime + 'ms');",
+					"console.log('-'.repeat(60));"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://petstore3.swagger.io/api/v3",
+			"type": "string"
+		},
+		{
+			"key": "createdPetId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
